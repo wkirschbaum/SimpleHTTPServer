@@ -1,21 +1,36 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
 	"net/http"
-	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/fatih/color"
 )
 
 func main() {
+	var port string
+	var directory string
+	var help bool
+	flag.BoolVar(&help, "h", false, "help")
+	flag.StringVar(&port, "p", "8000", "port")
+	flag.StringVar(&directory, "d", "./", "directory")
+	flag.Parse()
+
+	if help {
+		flag.PrintDefaults()
+		return
+	}
+
 	ip := getLocalIP("0.0.0.0")
-	port := getPort("8000")
 
-	http.Handle("/", http.FileServer(http.Dir("./")))
+	http.Handle("/", http.FileServer(http.Dir(directory)))
 
+	absPath, _ := filepath.Abs(directory)
+	fmt.Printf("Serving %s\n", absPath)
 	fmt.Printf("Listening on %s:%s\n", ip, port)
 	listenString := fmt.Sprintf(":%s", port)
 	http.ListenAndServe(listenString, logHandler(http.DefaultServeMux))
@@ -76,15 +91,4 @@ func getLocalIP(fallback string) string {
 		}
 	}
 	return fallback
-}
-
-func getPort(fallback string) string {
-	port := os.Getenv("port")
-	if len(port) == 0 {
-		port = os.Getenv("PORT")
-	}
-	if len(port) == 0 {
-		port = fallback
-	}
-	return port
 }
