@@ -3,12 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net"
 	"net/http"
 	"path/filepath"
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/wkirschbaum/localip"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func main() {
 		return
 	}
 
-	ip := getLocalIP("0.0.0.0")
+	ip := localip.GetLocalIP("0.0.0.0")
 
 	http.Handle("/", http.FileServer(http.Dir(directory)))
 
@@ -75,20 +75,4 @@ func (w *loggingResponseWriter) Write(b []byte) (int, error) {
 
 func (w loggingResponseWriter) Header() http.Header {
 	return w.ResponseWriter.Header()
-}
-
-func getLocalIP(fallback string) string {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return fallback
-	}
-	for _, address := range addrs {
-		// check the address type and if it is not a loopback the display it
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
-			}
-		}
-	}
-	return fallback
 }
