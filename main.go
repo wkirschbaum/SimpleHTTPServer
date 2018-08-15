@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+  "log"
 
 	"github.com/fatih/color"
 	"github.com/wkirschbaum/localip"
@@ -33,7 +34,14 @@ func main() {
 	fmt.Printf("Serving %s\n", absPath)
 	fmt.Printf("Listening on %s:%s\n", ip, port)
 	listenString := fmt.Sprintf(":%s", port)
-	http.ListenAndServe(listenString, logHandler(http.DefaultServeMux))
+  log.Fatal( http.ListenAndServe(listenString, logHandler(headerHandler(http.DefaultServeMux))))
+}
+
+func headerHandler(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Access-Control-Allow-Origin", "*")
+		handler.ServeHTTP(w, r)
+  })
 }
 
 func logHandler(handler http.Handler) http.Handler {
